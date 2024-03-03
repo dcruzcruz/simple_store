@@ -1,26 +1,18 @@
-# db/seeds.rb
 require 'csv'
-require 'faker'
-
-# Clear out the products and categories tables
-Product.destroy_all
-Category.destroy_all
-
-# Loop through the rows of a CSV file
-csv_file = Rails.root.join('db/products.csv')
-csv_data = File.read(csv_file)
-products = CSV.parse(csv_data, headers: true)
-
-products.each do |product|
-  # Create or find the associated category
-  category = Category.find_or_create_by(name: product['category'])
-
-  # Create products
-  Product.create(
-    title: product['title'],
-    description: Faker::Lorem.paragraph,
-    price: product['price'],
-    stock_quantity: product['stock_quantity'],
-    category: category
-  )
+# Define a method to convert CSV rows to hash
+def csv_to_hash(row)
+  {
+    title: row['name'],
+    description: row['description'],
+    price: row['price'].to_d, # Convert to decimal
+    stock_quantity: row['stock quantity'].to_i, # Convert to integer
+    category_id: Category.find_or_create_by(name: row['category']).id
+  }
 end
+# Load CSV file and seed products
+csv_path = Rails.root.join('db', 'products.csv') # Update with the correct path
+csv_data = CSV.read(csv_path, headers: true)
+csv_data.each do |row|
+  Product.create(csv_to_hash(row))
+end
+puts 'Products seeded successfully!'
